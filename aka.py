@@ -243,11 +243,33 @@ def create_runtime_comparison_chart(selection_metrics: Dict[str, Any], merge_met
         marker=dict(color='red', size=10)
     ))
 
+    # Calculate y-axis range to ensure proper scaling
+    max_y = max(
+        max(selection_theoretical),
+        max(merge_theoretical),
+        selection_metrics['total_operations'],
+        merge_metrics['total_operations']
+    )
+    min_y = min(
+        min(y for y in selection_theoretical if y > 0),
+        min(y for y in merge_theoretical if y > 0),
+        selection_metrics['total_operations'],
+        merge_metrics['total_operations']
+    )
+
+    # Set y-axis range with some padding
+    y_range = [min_y * 0.8, max_y * 1.2]
+
     fig.update_layout(
         title='Runtime Comparison: Actual vs Theoretical',
         xaxis_title='Input Size (n)',
         yaxis_title='Number of Operations',
         yaxis_type="log",
+        yaxis=dict(
+            range=[math.log10(y_range[0]), math.log10(y_range[1])],
+            tickformat=".0f",  # Remove scientific notation
+            dtick=1  # Set tick interval to 1 log unit
+        ),
         height=500,
         showlegend=True
     )
