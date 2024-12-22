@@ -275,13 +275,16 @@ def create_runtime_comparison_chart(selection_metrics: Dict[str, Any], merge_met
     )
     return fig
 
-def create_complexity_classes_chart() -> go.Figure:
-    # Generate data points for different input sizes
-    n = np.arange(1, 41)
+def create_complexity_classes_chart(n_products: int, selection_metrics: Dict[str, Any], merge_metrics: Dict[str, Any]) -> go.Figure:
+    # Generate data points based on actual input size
+    n = np.arange(1, n_products + 1)
     
     # Calculate complexity values
-    quadratic = n**2
-    loglinear = n * np.log2(n)
+    quadratic = n**2  # O(n²)
+    loglinear = n * np.log2(n)  # O(n log n)
+    
+    # Calculate y-axis range based on theoretical values only
+    max_y = max(max(quadratic), max(loglinear))
     
     fig = go.Figure()
     
@@ -289,20 +292,18 @@ def create_complexity_classes_chart() -> go.Figure:
     fig.add_trace(go.Scatter(
         x=n,
         y=loglinear,
-        mode='lines+markers',
-        name='O(n log n)',
+        mode='lines',
+        name='Merge Sort ∈ O(n log n)',
         line=dict(color='orange'),
-        marker=dict(size=6)
     ))
     
     # Add O(n²) line
     fig.add_trace(go.Scatter(
         x=n,
         y=quadratic,
-        mode='lines+markers',
-        name='O(n²)',
+        mode='lines',
+        name='Selection Sort ∈ O(n²)',
         line=dict(color='red'),
-        marker=dict(size=6)
     ))
 
     fig.update_layout(
@@ -310,7 +311,14 @@ def create_complexity_classes_chart() -> go.Figure:
         xaxis_title='Input Size (n)',
         yaxis_title='Running Time',
         height=500,
-        showlegend=True
+        showlegend=True,
+        yaxis=dict(
+            range=[0, max_y * 1.1],  
+            tickformat=".0f"  
+        ),
+        xaxis=dict(
+            range=[0, n_products * 1.1]  
+        )
     )
     return fig
 
