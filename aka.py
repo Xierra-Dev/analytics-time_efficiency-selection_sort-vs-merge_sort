@@ -315,8 +315,8 @@ def main():
 
         n_products = st.slider(
             "Number of Products (Slider)",
-            min_value=10,
-            max_value=1000,
+            min_value=0,
+            max_value=10000,
             value=manual_input if manual_input else 100,
             key="n_products_slider",
         )
@@ -386,6 +386,17 @@ def main():
 
             with tabs[2]:
                 st.subheader("Theoretical vs Actual Performance")
+                
+                # Handle edge cases for 0 or 1 products
+                selection_ratio = (
+                    selection_metrics['total_operations'] / selection_metrics['theoretical_complexity']
+                    if selection_metrics['theoretical_complexity'] > 0 else None
+                )
+                merge_ratio = (
+                    merge_metrics['total_operations'] / merge_metrics['theoretical_complexity']
+                    if merge_metrics['theoretical_complexity'] > 0 else None
+                )
+                
                 theory_df = pd.DataFrame({
                     'Algorithm': ['Selection Sort', 'Merge Sort'],
                     'Theoretical Complexity': [
@@ -397,8 +408,8 @@ def main():
                         merge_metrics['total_operations'],
                     ],
                     'Ratio (Actual/Theoretical)': [
-                        selection_metrics['total_operations'] / selection_metrics['theoretical_complexity'],
-                        merge_metrics['total_operations'] / merge_metrics['theoretical_complexity'],
+                        selection_ratio,
+                        merge_ratio,
                     ],
                 })
                 st.dataframe(theory_df)
