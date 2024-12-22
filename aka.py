@@ -157,7 +157,7 @@ class DataGenerator:
             products.append(Product(
                 id=i+1,
                 name=name,
-                price=round(random.uniform(0, 1000), 2),
+                price=round(random.uniform(10, 1000), 2),
                 rating=round(random.uniform(1, 5), 1),
                 stock=random.randint(0, 100),
                 category=random.choice(DataGenerator.CATEGORIES),
@@ -267,7 +267,6 @@ def create_runtime_comparison_chart(selection_metrics: Dict[str, Any], merge_met
         yaxis_type="log",
         yaxis=dict(
             range=[math.log10(y_range[0]), math.log10(y_range[1])],
-            tickformat=".0f",  # Remove scientific notation
             dtick=1  # Set tick interval to 1 log unit
         ),
         height=500,
@@ -314,7 +313,6 @@ def create_complexity_classes_chart(n_products: int, selection_metrics: Dict[str
         showlegend=True,
         yaxis=dict(
             range=[0, max_y * 1.1],  
-            tickformat=".0f"  
         ),
         xaxis=dict(
             range=[0, n_products * 1.1]  
@@ -359,7 +357,6 @@ def main():
         )
         sort_order = st.selectbox("Sort Order", ["Ascending", "Descending"], key="sort_order")
 
-        # Tombol "Run Analysis" dipindahkan ke sidebar
         run_analysis = st.button("Run Analysis", key="run_analysis")
 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -443,7 +440,6 @@ def main():
                     ],
                 })
                 st.dataframe(theory_df)
-
             with tabs[3]:
                 st.plotly_chart(
                     create_runtime_comparison_chart(selection_metrics, merge_metrics, n_products),
