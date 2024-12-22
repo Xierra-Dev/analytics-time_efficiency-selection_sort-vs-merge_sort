@@ -449,7 +449,10 @@ def main():
                     create_runtime_comparison_chart(selection_metrics, merge_metrics, n_products),
                     use_container_width=True,
                 )
-                st.plotly_chart(create_complexity_classes_chart(), use_container_width=True)
+                st.plotly_chart(
+                    create_complexity_classes_chart(n_products, selection_metrics, merge_metrics),
+                    use_container_width=True
+                )
 
     # Footer
     st.markdown("---")
