@@ -157,7 +157,7 @@ class DataGenerator:
             products.append(Product(
                 id=i+1,
                 name=name,
-                price=round(random.uniform(10, 1000), 2),
+                price=round(random.uniform(0, 1000), 2),
                 rating=round(random.uniform(1, 5), 1),
                 stock=random.randint(0, 100),
                 category=random.choice(DataGenerator.CATEGORIES),
