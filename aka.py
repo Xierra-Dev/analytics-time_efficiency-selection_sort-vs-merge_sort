@@ -5,13 +5,13 @@ import time
 import plotly.graph_objects as go
 from typing import List, Tuple, Dict, Any
 from datetime import datetime, timedelta
-import json
-import base64
-from io import StringIO
 import random
 import math
 
 # Product class to represent e-commerce items
+SELECTION_SORT = 'Selection Sort'
+MERGE_SORT = 'Merge Sort'
+
 class Product:
     def __init__(self, id: int, name: str, price: float, rating: float, 
                  stock: int, category: str, date_added: datetime):
@@ -24,22 +24,22 @@ class Product:
         self.date_added = date_added
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            'ID': self.id,
-            'Name': self.name,
-            'Price': self.price,
-            'Rating': self.rating,
-            'Stock': self.stock,
-            'Category': self.category,
-            'Date Added': self.date_added
+        field_mapping = {
+            'ID': 'id',
+            'Name': 'name',
+            'Price': 'price',
+            'Rating': 'rating',
+            'Stock': 'stock',
+            'Category': 'category',
+            'Date Added': 'date_added'
         }
+        return {k: getattr(self, field_mapping[k]) for k in field_mapping.keys()}
 
 # Class for sorting algorithms
 class SortingAnalyzer:
     @staticmethod
     def selection_sort(products: List[Product], key: str, ascending: bool = True) -> Tuple[List[Product], Dict[str, Any]]:
-        comparisons = 0
-        swaps = 0
+        comparisons = swaps = 0
         steps = []
         start_time = time.time()
         n = len(products)
@@ -47,39 +47,39 @@ class SortingAnalyzer:
         # Calculate theoretical complexity for Selection Sort
         theoretical_complexity = (n * n - n) / 2
         
+        def compare_products(a: Product, b: Product) -> bool:
+            nonlocal comparisons
+            comparisons += 1
+            a_val = getattr(a, key.lower())
+            b_val = getattr(b, key.lower())
+            return a_val < b_val if ascending else a_val > b_val
+        
+        # Main sorting loop
         for i in range(n):
             min_idx = i
+            # Find minimum element
             for j in range(i + 1, n):
-                comparisons += 1
-                current_val = getattr(products[j], key.lower())
-                min_val = getattr(products[min_idx], key.lower())
-                
-                if ascending:
-                    if current_val < min_val:
-                        min_idx = j
-                else:
-                    if current_val > min_val:
-                        min_idx = j
+                if compare_products(products[j], products[min_idx]):
+                    min_idx = j
             
+            # Swap if needed and record step
             if min_idx != i:
-                swaps += 1
                 products[i], products[min_idx] = products[min_idx], products[i]
+                swaps += 1
                 steps.append({
                     'step': i + 1,
                     'comparisons': comparisons,
                     'swaps': swaps
                 })
         
-        execution_time = time.time() - start_time
         return products, {
-            'execution_time': execution_time,
+            'execution_time': time.time() - start_time,
             'comparisons': comparisons,
             'swaps': swaps,
             'total_operations': comparisons + swaps,
             'theoretical_complexity': theoretical_complexity,
             'steps': steps
         }
-
     @staticmethod
     def merge_sort(products: List[Product], key: str, ascending: bool = True) -> Tuple[List[Product], Dict[str, Any]]:
         comparisons = 0
@@ -168,12 +168,12 @@ class DataGenerator:
 def create_performance_chart(selection_metrics: Dict[str, Any], merge_metrics: Dict[str, Any], n_products: int) -> go.Figure:
     metrics_df = pd.DataFrame({
         'Metric': ['Time (seconds)', 'Total Operations', 'Theoretical Complexity'],
-        'Selection Sort': [
+        SELECTION_SORT: [
             selection_metrics['execution_time'],
             selection_metrics['total_operations'],
             selection_metrics['theoretical_complexity']
         ],
-        'Merge Sort': [
+        MERGE_SORT: [
             merge_metrics['execution_time'],
             merge_metrics['total_operations'],
             merge_metrics['theoretical_complexity']
@@ -184,7 +184,7 @@ def create_performance_chart(selection_metrics: Dict[str, Any], merge_metrics: D
     for metric in metrics_df['Metric']:
         fig.add_trace(go.Bar(
             name=metric,
-            x=['Selection Sort', 'Merge Sort'],
+            x=[SELECTION_SORT, MERGE_SORT],
             y=metrics_df[metrics_df['Metric'] == metric].iloc[0, 1:],
             text=metrics_df[metrics_df['Metric'] == metric].iloc[0, 1:].round(6),
             textposition='auto',
@@ -274,7 +274,7 @@ def create_runtime_comparison_chart(selection_metrics: Dict[str, Any], merge_met
     )
     return fig
 
-def create_complexity_classes_chart(n_products: int, selection_metrics: Dict[str, Any], merge_metrics: Dict[str, Any]) -> go.Figure:
+def create_complexity_classes_chart(n_products: int) -> go.Figure:
     # Generate data points based on actual input size
     n = np.arange(1, n_products + 1)
     
@@ -312,10 +312,10 @@ def create_complexity_classes_chart(n_products: int, selection_metrics: Dict[str
         height=500,
         showlegend=True,
         yaxis=dict(
-            range=[0, max_y * 1.1],  
+            range=[0, max_y * 1.1],  # Add 10% padding to y-axis
         ),
         xaxis=dict(
-            range=[0, n_products * 1.1]  
+            range=[0, n_products * 1.1]  # Add 10% padding to x-axis
         )
     )
     return fig
@@ -357,6 +357,7 @@ def main():
         )
         sort_order = st.selectbox("Sort Order", ["Ascending", "Descending"], key="sort_order")
 
+        # Tombol "Run Analysis" dipindahkan ke sidebar
         run_analysis = st.button("Run Analysis", key="run_analysis")
 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -446,7 +447,7 @@ def main():
                     use_container_width=True,
                 )
                 st.plotly_chart(
-                    create_complexity_classes_chart(n_products, selection_metrics, merge_metrics),
+                    create_complexity_classes_chart(n_products),
                     use_container_width=True
                 )
 
