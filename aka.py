@@ -312,10 +312,10 @@ def create_complexity_classes_chart(n_products: int) -> go.Figure:
         height=500,
         showlegend=True,
         yaxis=dict(
-            range=[0, max_y * 1.1],  # Add 10% padding to y-axis
+            range=[0, max_y * 1.1]
         ),
         xaxis=dict(
-            range=[0, n_products * 1.1]  # Add 10% padding to x-axis
+            range=[0, n_products * 1.1]  
         )
     )
     return fig
@@ -357,7 +357,6 @@ def main():
         )
         sort_order = st.selectbox("Sort Order", ["Ascending", "Descending"], key="sort_order")
 
-        # Tombol "Run Analysis" dipindahkan ke sidebar
         run_analysis = st.button("Run Analysis", key="run_analysis")
 
         st.markdown("</div>", unsafe_allow_html=True)
