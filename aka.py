@@ -312,10 +312,10 @@ def create_complexity_classes_chart(n_products: int) -> go.Figure:
         height=500,
         showlegend=True,
         yaxis=dict(
-            range=[0, max_y * 1.1]
+            range=[0, max_y * 1.1],  # Add 10% padding to y-axis
         ),
         xaxis=dict(
-            range=[0, n_products * 1.1]  
+            range=[0, n_products * 1.1]  # Add 10% padding to x-axis
         )
     )
     return fig
@@ -323,9 +323,13 @@ def create_complexity_classes_chart(n_products: int) -> go.Figure:
 def main():
     st.set_page_config(page_title="E-commerce Sorting Analysis", layout="wide")
 
-
     st.title("🛍️ E-commerce Sorting Algorithm Analysis")
     st.write("Compare the performance of Selection Sort and Merge Sort algorithms")
+
+    # Initialize session state for storing generated data
+    if 'products' not in st.session_state:
+        st.session_state.products = None
+        st.session_state.data_generated = False
 
     # Sidebar configuration
     with st.sidebar:
@@ -334,7 +338,7 @@ def main():
 
         manual_input = st.number_input(
             "Manual Input for Number of Products",
-            min_value=0,
+            min_value=1,
             max_value=10000,
             value=100,
             step=1,
@@ -343,7 +347,7 @@ def main():
 
         n_products = st.slider(
             "Number of Products (Slider)",
-            min_value=0,
+            min_value=1,
             max_value=10000,
             value=manual_input if manual_input else 100,
             key="n_products_slider",
@@ -352,49 +356,59 @@ def main():
         if manual_input != n_products:
             n_products = manual_input
 
+        # Sort settings
         sort_key = st.selectbox(
-            "Sort by", ["Name", "Price", "Rating", "Stock"], key="sort_key"
+            "Sort by", ["ID", "Name", "Price", "Rating", "Stock"], key="sort_key"
         )
         sort_order = st.selectbox("Sort Order", ["Ascending", "Descending"], key="sort_order")
 
-        run_analysis = st.button("Run Analysis", key="run_analysis")
+        # Generate Data button
+        generate_data = st.button("Generate Data & Run Analysis", key="generate_data")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # Generate and analyze data when button is clicked
-    if run_analysis:
-        with st.spinner("Generating and analyzing data..."):
-            # Generate sample data
-            products = DataGenerator.generate_sample_data(n_products)
+    # Generate new data when button is clicked
+    if generate_data:
+        with st.spinner("Generating new data..."):
+            st.session_state.products = DataGenerator.generate_sample_data(n_products)
+            st.session_state.data_generated = True
 
+    # Process and display data if it exists
+    if st.session_state.data_generated and st.session_state.products:
+        with st.spinner("Processing data..."):
             # Perform sorting
             ascending = sort_order == "Ascending"
             selection_sorted, selection_metrics = SortingAnalyzer.selection_sort(
-                products.copy(), sort_key.lower(), ascending
+                st.session_state.products.copy(), sort_key.lower(), ascending
             )
             merge_sorted, merge_metrics = SortingAnalyzer.merge_sort(
-                products.copy(), sort_key.lower(), ascending
+                st.session_state.products.copy(), sort_key.lower(), ascending
             )
 
             # Create DataFrames
-            original_df = pd.DataFrame([p.to_dict() for p in products])
+            original_df = pd.DataFrame([p.to_dict() for p in st.session_state.products])
             selection_df = pd.DataFrame([p.to_dict() for p in selection_sorted])
             merge_df = pd.DataFrame([p.to_dict() for p in merge_sorted])
+
+            # Reset index to start from 1
+            original_df.index = range(1, len(original_df) + 1)
+            selection_df.index = range(1, len(selection_df) + 1)
+            merge_df.index = range(1, len(merge_df) + 1)
 
             # Display results in tabs
             tabs = st.tabs(["📊 Data View", "📈 Performance Analysis", "📚 Theoretical Analysis", "📉 Runtime Graphs"])
 
             with tabs[0]:
-                st.subheader("Original Data (First 10 rows)")
-                st.dataframe(original_df.head(10))
+                st.subheader("Original Data")
+                st.dataframe(original_df)
 
                 col1, col2 = st.columns(2)
                 with col1:
                     st.subheader("Selection Sort Results")
-                    st.dataframe(selection_df.head(10))
+                    st.dataframe(selection_df)
                 with col2:
                     st.subheader("Merge Sort Results")
-                    st.dataframe(merge_df.head(10))
+                    st.dataframe(merge_df)
 
             with tabs[1]:
                 st.plotly_chart(
@@ -402,7 +416,6 @@ def main():
                     use_container_width=True,
                 )
 
-                # Display detailed metrics
                 col1, col2 = st.columns(2)
                 with col1:
                     st.subheader("Selection Sort Metrics")
@@ -414,7 +427,6 @@ def main():
             with tabs[2]:
                 st.subheader("Theoretical vs Actual Performance")
                 
-                # Handle edge cases for 0 or 1 products
                 selection_ratio = (
                     selection_metrics['total_operations'] / selection_metrics['theoretical_complexity']
                     if selection_metrics['theoretical_complexity'] > 0 else None
@@ -440,6 +452,7 @@ def main():
                     ],
                 })
                 st.dataframe(theory_df)
+
             with tabs[3]:
                 st.plotly_chart(
                     create_runtime_comparison_chart(selection_metrics, merge_metrics, n_products),
@@ -449,16 +462,8 @@ def main():
                     create_complexity_classes_chart(n_products),
                     use_container_width=True
                 )
-
-    # Footer
-    st.markdown("---")
-    st.markdown(
-        """
-        **E-commerce Sorting Algorithm Analysis Tool**  
-        Developed to demonstrate the efficiency and trade-offs of different sorting algorithms for large datasets.  
-        Algorithms analyzed: Selection Sort and Merge Sort.  
-        """
-    )
+    else:
+        st.info("👆 Click 'Generate New Data' button in the sidebar to start the analysis")
 
 if __name__ == "__main__":
     main()
