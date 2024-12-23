@@ -463,7 +463,7 @@ def main():
                     use_container_width=True
                 )
     else:
-        st.info("👆 Click 'Generate New Data' button in the sidebar to start the analysis")
+        st.info("👆 Click 'Generate New Data & Run Analysis' button in the sidebar to start the analysis")
 
 if __name__ == "__main__":
     main()
