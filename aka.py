@@ -146,7 +146,7 @@ class SortingAnalyzer:
         }
 
 class DataGenerator:
-    CATEGORIES = ['Electronics', 'Clothing', 'Book', 'Home & Garden', 'Sports', 'Toys']
+    CATEGORIES = ['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Toys']
     PRODUCT_NAMES = ['Laptop', 'Phone', 'Tablet', 'Watch', 'Camera', 'Headphones']
     
     @staticmethod
